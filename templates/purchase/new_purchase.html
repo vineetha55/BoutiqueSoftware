@@ -1,0 +1,135 @@
+{% include 'navbar.html' %}
+{% load static %}
+{% block content %}
+
+<div class="container mt-4">
+    <h3 class="mb-4">🧾 New Purchase Entry</h3>
+    {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">Purchase Details</div>
+            <div class="card-body row g-3">
+                <div class="col-md-4">
+                    <label>Vendor</label>
+                    <select name="vendor" class="form-control" required>
+                        <option value="">-- Select Vendor --</option>
+                        {% for v in vendors %}
+                        <option value="{{ v.id }}">{{ v.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label>Invoice Number</label>
+                    <input type="text" name="invoice_number" class="form-control" required>
+                </div>
+                <div class="col-md-4">
+                    <label>Purchase Date</label>
+                    <input type="date" name="purchase_date" class="form-control" required>
+                </div>
+                <div class="col-md-4">
+                    <label>Payment Mode</label>
+                    <select name="payment_mode" class="form-control" required>
+                        <option>Cash</option>
+                        <option>Card</option>
+                        <option>UPI</option>
+                        <option>Bank Transfer</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label>Payment Status</label>
+                    <select name="payment_status" class="form-control" required>
+                        <option>Paid</option>
+                        <option>Pending</option>
+                    </select>
+                </div>
+                <div class="col-md-12">
+                    <label>Notes</label>
+                    <textarea name="notes" class="form-control"></textarea>
+                </div>
+            </div>
+        </div>
+
+     <div class="card shadow-sm mb-4">
+            <div class="card-header bg-dark text-white">Items Purchased</div>
+            <div class="card-body">
+                <div id="items-wrapper">
+                    <div class="row g-3 mb-3 item-row">
+                        <div class="col-md-3">
+                            <input type="text" name="product_name" placeholder="Product" class="form-control" required>
+                        </div>
+                        <div class="col-md-3">
+                            <select name="category" class="form-control" required>
+                                <option value="">-- Category --</option>
+                                {% for v in category %}
+                                    <option value="{{ v.id }}">{{ v.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select name="sub_category" class="form-control" required>
+                                <option value="">-- SubCategory --</option>
+                                {% for v in sub %}
+                                    <option value="{{ v.id }}">{{ v.category.name }} -- {{ v.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <input type="number" name="quantity" placeholder="Qty" class="form-control quantity" required oninput="calculateTotal()">
+                        </div>
+                        <div class="col-md-2">
+                            <input type="number" step="0.01" name="unit_price" placeholder="Price" class="form-control unit_price" required oninput="calculateTotal()">
+                        </div>
+                        <div class="col-md-2">
+                            <input type="number" step="0.01" name="gst_percentage" placeholder="GST%" class="form-control gst" oninput="calculateTotal()">
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-secondary" onclick="addItem()">➕ Add Another Product</button>
+            </div>
+        </div>
+
+        <!-- 🧮 Total Calculation Section -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">Summary</div>
+            <div class="card-body text-end">
+                <h5 class="fw-bold">Total Amount: ₹ <span id="totalAmount">0.00</span></h5>
+            </div>
+        </div>
+
+        <div class="text-end">
+            <button type="submit" class="btn btn-primary px-4">💾 Save Purchase</button>
+        </div>
+    </form>
+</div>
+
+<!-- 🧠 Script -->
+<script>
+function addItem() {
+    let itemRow = document.querySelector('.item-row');
+    let clone = itemRow.cloneNode(true);
+    clone.querySelectorAll('input').forEach(input => input.value = '');
+    clone.querySelectorAll('input').forEach(input => input.setAttribute("oninput", "calculateTotal()"));
+    document.getElementById('items-wrapper').appendChild(clone);
+    calculateTotal();
+}
+
+function calculateTotal() {
+    let rows = document.querySelectorAll('.item-row');
+    let grandTotal = 0;
+    rows.forEach(row => {
+        let qty = parseFloat(row.querySelector('.quantity')?.value) || 0;
+        let price = parseFloat(row.querySelector('.unit_price')?.value) || 0;
+        let gst = parseFloat(row.querySelector('.gst')?.value) || 0;
+
+        let lineTotal = qty * price;
+        lineTotal += lineTotal * gst / 100;
+        grandTotal += lineTotal;
+    });
+    document.getElementById('totalAmount').innerText = grandTotal.toFixed(2);
+}
+</script>
+
+{% endblock %}

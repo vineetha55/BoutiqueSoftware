@@ -1,0 +1,63 @@
+{% include 'navbar.html' %}
+{% load static %}
+{% block content %}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="mb-0">📦 Purchase History</h3>
+        <a href="{% url 'new_purchase' %}" class="btn btn-primary">➕ New Purchase</a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped mb-0">
+                    <thead class="table-dark text-center">
+                        <tr>
+                            <th>#</th>
+                            <th>Vendor</th>
+                            <th>Invoice No</th>
+                            <th>Purchase Date</th>
+                            <th>Payment Mode</th>
+                            <th>Status</th>
+                            <th>Total</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if purchases %}
+                            {% for p in purchases %}
+                            <tr class="text-center">
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ p.vendor.name }}</td>
+                                <td>{{ p.invoice_number }}</td>
+                                <td>{{ p.purchase_date|date:"d M Y" }}</td>
+                                <td>{{ p.payment_mode }}</td>
+                                <td>
+                                    {% if p.payment_status == "Paid" %}
+                                        <span class="badge bg-success">Paid</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    ₹ {{ p.get_total|floatformat:2 }}
+                                </td>
+                                <td>
+                                    <a href="{% url 'purchase_detail' p.id %}" class="btn btn-sm btn-info">🔍 View</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="8" class="text-center py-3">No purchases found.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

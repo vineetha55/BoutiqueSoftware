@@ -2,26 +2,56 @@ from django.urls import path
 from .views import *
 
 urlpatterns = [
+    # Auth & Dashboard
     path("", index, name="index"),
     path("dashboard/", dashboard, name="dashboard"),
+    path("logout/", logout_view, name="logout"),
 
-    # Products & Inventory
+    # Product Management
     path("products/", product_list, name="products"),
     path("products/add/", add_product, name="add_product"),
     path("products/stock/", stock_management, name="stock"),
+    path("products/categories/", product_categories, name="product_categories"),
+    path("products/sub_categories/",sub_categories,name="sub_categories"),
+    path("category/add/",category_add,name="category_add"),
+    path("subcategory/add/",subcategory_add,name="subcategory_add"),
 
-    # Sales & Billing
+    # Sales
     path("sales/new/", new_sale, name="new_sale"),
     path("sales/history/", sales_history, name="sales_history"),
-    path("sales/gst-invoices/", gst_invoices, name="gst_invoices"),
+
+    # Purchases
+    path("purchase/new/", new_purchase, name="new_purchase"),
+    path("purchase/history/", purchase_list, name="purchase_list"),
+
+    # Vendors
+    path("vendors/", vendor_list, name="vendor_list"),
+    path("vendors/add/", add_vendor, name="add_vendor"),
+
+    # Invoices
+    path("invoices/sales/", sales_invoices, name="sales_invoices"),
+    path("invoices/purchase/", purchase_invoices, name="purchase_invoices"),
+    path("invoices/sales/<int:invoice_id>/", view_sales_invoice, name="view_sales_invoice"),
+    path("invoices/purchase/<int:invoice_id>/", view_purchase_invoice, name="view_purchase_invoice"),
+
+    # Tax Master
+    path("tax-master/", tax_master, name="tax_master"),
 
     # Customers
     path("customers/", customer_list, name="customers"),
+    path("customers/add/", add_customer, name="add_customer"),
 
     # Tailoring Orders
     path("orders/", order_list, name="orders"),
     path("orders/new/", new_order, name="new_order"),
     path("orders/measurements/", measurement_list, name="measurements"),
+
+    #service orders
+    path("services/new/", new_service_order, name="new_service_order"),
+    path("services/", service_order_list, name="service_order_list"),
+    path("services/<int:order_id>/view/", view_service_order, name="view_service_order"),
+    path("services/<int:order_id>/edit/", edit_service_order, name="edit_service_order"),
+    path("services/<int:order_id>/delete/", delete_service_order, name="delete_service_order"),
 
     # Employees
     path("employees/", employee_list, name="employees"),
@@ -40,7 +70,4 @@ urlpatterns = [
     path("settings/shop/", shop_settings, name="shop_settings"),
     path("settings/theme/", theme_settings, name="theme_settings"),
     path("settings/backup/", backup_restore, name="backup_restore"),
-
-    # Auth
-    path("logout/", logout_view, name="logout"),
 ]

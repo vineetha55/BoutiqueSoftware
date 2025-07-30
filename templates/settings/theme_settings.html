@@ -1,10 +1,35 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% include 'navbar.html' %}
+{% load static %}
 
-</body>
-</html>
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Theme Settings</h2>
+
+    <form method="POST" class="shadow p-4 bg-white rounded">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+
+        <div class="form-group">
+            <label for="id_font_family">Font Style</label>
+            {{ form.font_family }}
+        </div>
+
+        <div class="form-group">
+            <label for="id_layout_mode">Layout Mode</label>
+            {{ form.layout_mode }}
+        </div>
+
+        <div class="form-group">
+            <label for="id_sidebar_style">Sidebar Style</label>
+            {{ form.sidebar_style }}
+        </div>
+
+        <div class="form-group">
+            <label for="id_button_style">Button Style</label>
+            {{ form.button_style }}
+        </div>
+
+        <button type="submit" class="btn btn-success mt-3">Save Theme</button>
+    </form>
+</div>
+{% endblock %}
