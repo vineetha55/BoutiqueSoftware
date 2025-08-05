@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h4>🧾 Purchase Invoice - {{ purchase.invoice_number }}</h4>
+    <p><strong>Vendor:</strong> {{ purchase.vendor.name }}</p>
+    <p><strong>Date:</strong> {{ purchase.purchase_date }}</p>
+    <p><strong>Payment Mode:</strong> {{ purchase.payment_mode }}</p>
+    <p><strong>Status:</strong> {{ purchase.payment_status }}</p>
+
+    <table class="table table-bordered mt-3">
+        <thead class="table-light">
+            <tr>
+                <th>Product</th>
+                <th>Category</th>
+                <th>Subcategory</th>
+                <th>Qty</th>
+                <th>Price</th>
+                <th>GST%</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ item.product_name }}</td>
+                <td>{{ item.category.name }}</td>
+                <td>{{ item.subcategory.name }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>₹{{ item.unit_price }}</td>
+                <td>{{ item.gst_percentage }}%</td>
+                <td>₹{{ item.total_amount }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <p><strong>Notes:</strong> {{ purchase.notes }}</p>
+</div>
+{% endblock %}

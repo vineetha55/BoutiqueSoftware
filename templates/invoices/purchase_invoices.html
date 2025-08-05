@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h3>🧾 Purchase Invoices</h3>
+    <table class="table table-bordered mt-3">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Invoice No.</th>
+                <th>Vendor</th>
+                <th>Total Amount</th>
+                <th>Date</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in purchases %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ p.invoice_number }}</td>
+                <td>{{ p.vendor.name }}</td>
+                <td>₹{{ p.total_amount }}</td>
+                <td>{{ p.purchase_date }}</td>
+               <td>
+                  <a href="{% url 'view_purchase_invoice' p.id %}" class="btn btn-sm btn-primary">View</a>
+               </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

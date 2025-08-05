@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h3>📄 Sales Invoices</h3>
+    <table class="table table-bordered mt-3">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Invoice No.</th>
+                <th>Customer</th>
+                <th>Total Amount</th>
+                <th>Date</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in sales %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ s.invoice_number }}</td>
+                <td>{{ s.customer.name }}</td>
+                <td>₹{{ s.total_amount }}</td>
+                <td>{{ s.sale_date }}</td>
+               <td>
+                  <a href="{% url 'view_sales_invoice' s.id %}" class="btn btn-sm btn-primary">View</a>
+               </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
