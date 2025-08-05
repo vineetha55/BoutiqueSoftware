@@ -1,10 +1,32 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-
-</body>
-</html>
+{% include 'navbar.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h3>📦 Inventory Report</h3>
+    <table class="table table-striped mt-3">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Product</th>
+                <th>Category</th>
+                <th>Subcategory</th>
+                <th>Current Stock</th>
+                <th>Unit Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in products %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ p.name }}</td>
+                <td>{{ p.category.name }}</td>
+                <td>{{ p.subcategory.name }}</td>
+                <td>{{ p.stock }}</td>
+                <td>{{ p.unit_price }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-center">No products found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

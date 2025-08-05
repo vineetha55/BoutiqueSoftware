@@ -1,10 +1,33 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% include 'navbar.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h4>📁 Backup & Restore</h4>
 
-</body>
-</html>
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">Download Backup</div>
+    <div class="card-body">
+      <a href="{% url 'backup_download' %}" class="btn btn-success">⬇️ Download Backup (.json)</a>
+    </div>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-header bg-dark text-white">Restore Backup</div>
+    <div class="card-body">
+      <form method="post" enctype="multipart/form-data" action="{% url 'backup_upload' %}">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label for="backup_file" class="form-label">Choose .json backup file</label>
+          <input type="file" name="backup_file" accept=".json" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-warning">♻️ Restore</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

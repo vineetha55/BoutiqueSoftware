@@ -1,10 +1,43 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% include 'navbar.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h3>📈 Profit Report</h3>
 
-</body>
-</html>
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <h5>💰 Total Sales</h5>
+            <ul class="list-group mb-4">
+                {% for s in sales %}
+                <li class="list-group-item d-flex justify-content-between">
+                    {{ s.invoice_number }} - {{ s.sale_date }}
+                    <span>₹{{ s.total_amount }}</span>
+                </li>
+                {% empty %}
+                <li class="list-group-item text-center">No sales found.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="col-md-6">
+            <h5>📦 Total Purchases</h5>
+            <ul class="list-group mb-4">
+                {% for p in purchases %}
+                <li class="list-group-item d-flex justify-content-between">
+                    {{ p.invoice_number }} - {{ p.purchase_date }}
+                    <span>₹{{ p.total_amount }}</span>
+                </li>
+                {% empty %}
+                <li class="list-group-item text-center">No purchases found.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- Optional: Add summary profit box -->
+    <div class="alert alert-success mt-4">
+        <strong>Total Profit:</strong>
+        ₹{{ sales|length|default:0 }} - ₹{{ purchases|length|default:0 }}
+        <span class="ms-3 text-muted">(calculation logic to be implemented)</span>
+    </div>
+</div>
+{% endblock %}

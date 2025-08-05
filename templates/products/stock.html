@@ -1,10 +1,52 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% include "navbar.html" %}
+{% load static %}
+{% block content %}
 
-</body>
-</html>
+<div class="container mt-4">
+    <h4 class="mb-4">📦 Stock Management</h4>
+  <table class="table table-bordered table-hover shadow-sm">
+    <thead class="table-dark">
+        <tr>
+            <th>#</th>
+            <th>Image</th>
+            <th>Product Name</th>
+            <th>Category</th>
+            <th>SubCategory</th>
+            <th>Stock</th>
+            <th>Unit</th>
+            <th>Last Updated</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for product in products %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" width="50" height="50">
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
+            <td>{{ product.name }}</td>
+            <td>{{ product.subcategory.category.name }}</td>
+            <td>{{ product.subcategory.name }}</td>
+            <td>{{ product.stock }}</td>
+            <td>{{ product.price }}</td>
+            <td>{{ product.updated_at|date:"Y-m-d H:i" }}</td>
+            <td>
+                <a href="{% url 'update_stock' product.id %}" class="btn btn-sm btn-primary">Update</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="9" class="text-center">No products found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+</div>
+
+{% endblock %}

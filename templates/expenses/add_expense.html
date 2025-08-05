@@ -1,10 +1,62 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% include 'navbar.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h3 class="mb-4">➕ Add New Expense</h3>
 
-</body>
-</html>
+    <form method="post">
+        {% csrf_token %}
+        <div class="card p-4 shadow-sm">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label>Category</label>
+                    <select name="category" class="form-control" required>
+                        <option value="">-- Select --</option>
+                        <option value="rent">Rent</option>
+                        <option value="salary">Salaries</option>
+                        <option value="inventory">Inventory</option>
+                        <option value="utilities">Utilities</option>
+                        <option value="marketing">Marketing</option>
+                        <option value="transport">Transport</option>
+                        <option value="misc">Miscellaneous</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label>Amount (₹)</label>
+                    <input type="number" name="amount" class="form-control" step="0.01" required>
+                </div>
+
+                <div class="col-md-4">
+                    <label>Date</label>
+                    <input type="date" name="date" class="form-control" required>
+                </div>
+
+                <div class="col-md-4">
+                    <label>Payment Mode</label>
+                    <select name="payment_mode" class="form-control" required>
+                        <option value="">-- Select --</option>
+                        <option value="cash">Cash</option>
+                        <option value="card">Card</option>
+                        <option value="upi">UPI</option>
+                        <option value="bank">Bank Transfer</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label>Reference Number</label>
+                    <input type="text" name="reference_number" class="form-control">
+                </div>
+
+                <div class="col-md-12">
+                    <label>Description</label>
+                    <textarea name="description" class="form-control" rows="3"></textarea>
+                </div>
+
+                <div class="col-md-12 text-end">
+                    <button type="submit" class="btn btn-success">💾 Save Expense</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

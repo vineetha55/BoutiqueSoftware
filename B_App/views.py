@@ -1,6 +1,8 @@
 from django.contrib import messages
+from django.core.management import call_command
 from django.db import transaction
-from django.shortcuts import render, redirect
+from django.http import HttpResponse
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from .models import *
@@ -61,7 +63,34 @@ def add_product(request):
 
 @login_required
 def stock_management(request):
-    return render(request, "products/stock.html")
+    settings = ShopSettings.objects.first()
+    products = tbl_Product.objects.all()
+    return render(request, "products/stock.html", {
+        "products": products,
+        "settings": settings
+    })
+@login_required
+def update_stock(request, pk):
+    product = tbl_Product.objects.get(pk=pk)
+    settings = ShopSettings.objects.first()
+
+    if request.method == "POST":
+        new_stock = request.POST.get("stock")
+        if new_stock.isdigit():
+            product.stock = int(new_stock)
+            product.save()
+            return redirect("stock")
+        else:
+            return render(request, "products/update_stock.html", {
+                "product": product,
+                "error": "Please enter a valid number",
+                "settings": settings
+            })
+
+    return render(request, "products/update_stock.html", {
+        "product": product,
+        "settings": settings
+    })
 
 @login_required
 def product_categories(request):
@@ -109,11 +138,51 @@ def subcategory_add(request):
 
 @login_required
 def new_sale(request):
-    return render(request, "sales/new_sale.html")
+    if request.method == "POST":
+        customer_name = request.POST.get("customer_name")
+        contact = request.POST.get("contact")
+        payment_mode = request.POST.get("payment_mode")
+        payment_status = request.POST.get("payment_status")
+        notes = request.POST.get("notes")
+        total_items = int(request.POST.get("total_items"))
+
+        sale = Sale.objects.create(
+            customer_name=customer_name,
+            contact=contact,
+            payment_mode=payment_mode,
+            payment_status=payment_status,
+            notes=notes,
+            created_by=request.user
+        )
+
+        for i in range(1, total_items + 1):
+            product_id = request.POST.get(f"product_{i}")
+            qty = request.POST.get(f"quantity_{i}")
+            price = request.POST.get(f"price_{i}")
+            gst = request.POST.get(f"gst_{i}")
+
+            if product_id and qty:
+                SaleItem.objects.create(
+                    sale=sale,
+                    product_id=product_id,
+                    quantity=qty,
+                    unit_price=price,
+                    gst_percentage=gst or 0
+                )
+
+        return redirect("sales_history")
+
+    products = tbl_Product.objects.all()
+    settings=ShopSettings.objects.first()
+    customer=Customer.objects.all()
+    return render(request, "sales/new_sale.html", {"products": products,"settings":settings,"customer":customer})
+
 
 @login_required
 def sales_history(request):
-    return render(request, "sales/sales_history.html")
+    sales = Sale.objects.all().order_by("-sale_date")
+    settings = ShopSettings.objects.first()
+    return render(request, "sales/sales_history.html", {"sales": sales,"settings":settings})
 
 
 # --- PURCHASES ---
@@ -177,7 +246,8 @@ def new_purchase(request):
             return render(request, "purchase/new_purchase.html", {'vendors': Vendor.objects.all(), 'error': str(e)})
 
     return render(request, "purchase/new_purchase.html", {'vendors': Vendor.objects.all(),'category':tbl_Category.objects.all(),
-                                                          'sub':tbl_SubCategory.objects.all(),'settings':ShopSettings.objects.first()})
+                                                          'sub':tbl_SubCategory.objects.all(),'settings':ShopSettings.objects.first(),
+                                                          "products":tbl_Product.objects.all()})
 @login_required
 def purchase_list(request):
     settings = ShopSettings.objects.first()
@@ -204,32 +274,51 @@ def add_vendor(request):
             return redirect("vendor_list")
     else:
         form = VendorForm()
-    return render(request, "vendors/add_vendor.html", {'form': form})
+        settings = ShopSettings.objects.first()
+    return render(request, "vendors/add_vendor.html", {'form': form,"settings":settings})
 
 # --- INVOICES ---
 
 @login_required
 def sales_invoices(request):
-    return render(request, "invoice/sales_invoice_list.html")
+    sales = Sale.objects.all().order_by('-sale_date')
+    settings = ShopSettings.objects.first()
+    return render(request, "invoices/sales_invoices.html", {'sales': sales,"settings":settings})
 
 @login_required
 def purchase_invoices(request):
-    return render(request, "invoice/purchase_invoice_list.html")
+    purchases = Purchase.objects.all().order_by('-purchase_date')
+    settings = ShopSettings.objects.first()
+    return render(request, "invoices/purchase_invoices.html", {'purchases': purchases,"settings":settings})
 
 @login_required
-def view_sales_invoice(request, invoice_id):
-    return render(request, "invoice/view_sales_invoice.html", {"invoice_id": invoice_id})
+def view_purchase_invoice(request, pk):
+    purchase = get_object_or_404(Purchase, pk=pk)
+    items = PurchaseItem.objects.filter(purchase=purchase)
+    settings = ShopSettings.objects.first()
+    return render(request, "invoices/view_purchase_invoice.html", {
+        'purchase': purchase,
+        'items': items,
+        "settings":settings
+    })
 
 @login_required
-def view_purchase_invoice(request, invoice_id):
-    return render(request, "invoice/view_purchase_invoice.html", {"invoice_id": invoice_id})
-
+def view_sales_invoice(request, pk):
+    sale = get_object_or_404(Sale, pk=pk)
+    items = SaleItem.objects.filter(sale=sale)
+    settings = ShopSettings.objects.first()
+    return render(request, "invoices/view_sales_invoice.html", {
+        'sale': sale,
+        'items': items,
+        'settings':settings
+    })
 
 # --- TAX MASTER ---
 
 @login_required
 def tax_master(request):
-    return render(request, "invoice/tax_master.html")
+    settings = ShopSettings.objects.first()
+    return render(request, "invoices/tax_master.html",{"settings":settings})
 
 
 # --- CUSTOMERS ---
@@ -255,17 +344,37 @@ def add_customer(request):
 
 # --- TAILORING ORDERS ---
 
+
 @login_required
 def order_list(request):
-    return render(request, "orders/order_list.html")
+    orders = TailoringOrder.objects.all()
+    settings = ShopSettings.objects.first()
+    return render(request, "orders/order_list.html", {"orders": orders,"settings":settings})
 
 @login_required
 def new_order(request):
-    return render(request, "orders/new_order.html")
+    if request.method == "POST":
+        TailoringOrder.objects.create(
+            customer_name=request.POST["customer_name"],
+            phone=request.POST["phone"],
+            order_date=request.POST["order_date"],
+            delivery_date=request.POST["delivery_date"],
+            item_type=request.POST["item_type"],
+            fabric_provided=request.POST.get("fabric_provided") == "on",
+            status=request.POST["status"],
+            notes=request.POST.get("notes"),
+        )
+        return redirect("orders")
+    settings=ShopSettings.objects.first()
+
+    return render(request, "orders/new_order.html",{"settings":settings})
+
 
 @login_required
 def measurement_list(request):
-    return render(request, "orders/measurement_list.html")
+    measurements = Measurement.objects.select_related("order")
+    settings = ShopSettings.objects.first()
+    return render(request, "orders/measurement_list.html", {"measurements": measurements,"settings":settings})
 
 
 # -----SALE ORDERS-----
@@ -292,42 +401,124 @@ def delete_service_order(request, order_id):
     return render(request, "services/delete_confirm.html")
 
 # --- EMPLOYEES ---
+@login_required
+def add_employee(request):
+    if request.method == "POST":
+        name = request.POST.get("name")
+        email = request.POST.get("email")
+        phone = request.POST.get("phone")
+        designation = request.POST.get("designation")
+        date_joined = request.POST.get("date_joined")
+        status = request.POST.get("status")
+        photo = request.FILES.get("photo")
+
+        Employee.objects.create(
+            name=name, email=email, phone=phone, designation=designation,
+            date_joined=date_joined, status=status, photo=photo
+        )
+        messages.success(request, "Employee added successfully.")
+        return redirect('employees')
+    settings=ShopSettings.objects.first()
+    return render(request, "employees/add_employee.html",{"settings":settings})
+@login_required
+def edit_employee(request, id):
+    employee = get_object_or_404(Employee, id=id)
+    if request.method == "POST":
+        employee.name = request.POST.get("name")
+        employee.email = request.POST.get("email")
+        employee.phone = request.POST.get("phone")
+        employee.designation = request.POST.get("designation")
+        employee.date_joined = request.POST.get("date_joined")
+        employee.status = request.POST.get("status")
+        if request.FILES.get("photo"):
+            employee.photo = request.FILES.get("photo")
+        employee.save()
+        messages.success(request, "Employee updated successfully.")
+        return redirect('employees')
+    settings = ShopSettings.objects.first()
+    return render(request, "employees/edit_employee.html", {'employee': employee,"settings":settings})
+
+
+@login_required
+def delete_employee(request, id):
+    employee = get_object_or_404(Employee, id=id)
+    employee.delete()
+    messages.success(request, "Employee deleted successfully.")
+    return redirect('employees')
 
 @login_required
 def employee_list(request):
-    return render(request, "employees/employee_list.html")
+    employees = Employee.objects.all()
+    settings = ShopSettings.objects.first()
+    return render(request, "employees/employee_list.html", {'employees': employees,"settings":settings})
+
 
 @login_required
 def attendance(request):
-    return render(request, "employees/attendance.html")
+    settings = ShopSettings.objects.first()
+    attendance_records = Attendance.objects.select_related('employee').order_by('-date')
+    return render(request, "employees/attendance.html", {'attendance_records': attendance_records,"settings":settings})
+
 
 @login_required
 def leaves(request):
-    return render(request, "employees/leaves.html")
+    settings = ShopSettings.objects.first()
+    leave_records = Leave.objects.select_related('employee').order_by('-leave_date')
+    return render(request, "employees/leaves.html", {'leave_records': leave_records,"settings":settings})
 
 
 # --- EXPENSES ---
 
 @login_required
 def expense_list(request):
-    return render(request, "expenses/expense_list.html")
+    expenses = Expense.objects.all().order_by("-date")
+    settings = ShopSettings.objects.first()
+    return render(request, "expenses/expense_list.html", {"expenses": expenses,"settings":settings})
 
 
+@login_required
+def add_expense(request):
+    if request.method == "POST":
+        category = request.POST.get("category")
+        amount = request.POST.get("amount")
+        date = request.POST.get("date")
+        description = request.POST.get("description")
+
+        Expense.objects.create(
+            category=category,
+            amount=amount,
+            date=date,
+            description=description,
+            added_by=request.user
+        )
+        messages.success(request, "Expense added successfully.")
+        return redirect("expenses")
+    settings = ShopSettings.objects.first()
+    return render(request, "expenses/add_expense.html",{"settings":settings})
 # --- REPORTS ---
 
 @login_required
 def sales_report(request):
-    return render(request, "reports/sales_report.html")
+    sales = Sale.objects.all().order_by("-sale_date")
+    settings=ShopSettings.objects.first()
+    return render(request, "reports/sales_report.html", {"sales": sales,"settings":settings})
 
 @login_required
 def inventory_report(request):
-    return render(request, "reports/inventory_report.html")
+    products = tbl_Product.objects.all()
+    settings = ShopSettings.objects.first()
+    return render(request, "reports/inventory_report.html", {"products": products,"settings":settings})
 
 @login_required
 def profit_report(request):
-    return render(request, "reports/profit_report.html")
-
-
+    sales = Sale.objects.all()
+    purchases = Purchase.objects.all()
+    settings = ShopSettings.objects.first()
+    return render(request, "reports/profit_report.html", {
+        "sales": sales,
+        "purchases": purchases,
+        "settings":settings
+    })
 # --- SETTINGS ---
 
 @login_required
@@ -360,11 +551,30 @@ def theme_settings(request):
         settings=ShopSettings.objects.first()
 
     return render(request, "settings/theme_settings.html", {"form": form,'settings':settings})
-
+import os
+import io
 @login_required
 def backup_restore(request):
     settings = ShopSettings.objects.first()
-    context={
-        "settings":settings
-    }
-    return render(request, "settings/backup_restore.html")
+    return render(request, "settings/backup_restore.html", {"settings": settings})
+
+@login_required
+def backup_download(request):
+    buffer = io.StringIO()
+    call_command('dumpdata', format='json', indent=2, stdout=buffer)
+    response = HttpResponse(buffer.getvalue(), content_type='application/json')
+    response['Content-Disposition'] = 'attachment; filename=backup.json'
+    return response
+
+@login_required
+def backup_upload(request):
+    if request.method == "POST" and request.FILES.get("backup_file"):
+        file = request.FILES["backup_file"]
+        try:
+            file_data = file.read().decode("utf-8")
+            buffer = io.StringIO(file_data)
+            call_command('loaddata', buffer)
+            messages.success(request, "Data restored successfully.")
+        except Exception as e:
+            messages.error(request, f"Failed to restore: {str(e)}")
+        return redirect('backup_restore')

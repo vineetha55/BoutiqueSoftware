@@ -58,8 +58,12 @@
                 <div id="items-wrapper">
                     <div class="row g-3 mb-3 item-row">
                         <div class="col-md-3">
-                            <input type="text" name="product_name" placeholder="Product" class="form-control" required>
-                        </div>
+            <select name="product_name" class="form-control" onchange="calculateTotal()">
+              <option>--Select any product--</option>
+                {% for p in products %}
+              <option value="{{ p.id }}">{{ p.name }}</option>
+              {% endfor %}
+            </select>                        </div>
                         <div class="col-md-3">
                             <select name="category" class="form-control" required>
                                 <option value="">-- Category --</option>

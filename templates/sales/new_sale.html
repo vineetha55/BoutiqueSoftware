@@ -1,10 +1,158 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+{% include 'navbar.html' %}
+{% load static %}
+{% block content %}
+
+<div class="container mt-4">
+  <h3 class="mb-4">🛒 New Sale Entry</h3>
+
+  {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="total_items" id="total_items" value="1">
+
+    <!-- Customer & Sale Info -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header bg-primary text-white fw-bold">Customer & Sale Info</div>
+      <div class="card-body row g-3">
+        <div class="col-md-4">
+          <label>Customer</label>
+          <select name="customer" class="form-control" required>
+            <option value="">-- Select Customer --</option>
+            {% for c in customers %}
+              <option value="{{ c.id }}">{{ c.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label>Sale Date</label>
+          <input type="date" name="sale_date" class="form-control" required>
+        </div>
+        <div class="col-md-4">
+          <label>Payment Mode</label>
+          <select name="payment_mode" class="form-control" required>
+            <option value="Cash">Cash</option>
+            <option value="Card">Card</option>
+            <option value="UPI">UPI</option>
+            <option value="Bank Transfer">Bank Transfer</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sale Items -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header bg-dark text-white fw-bold">Sale Items</div>
+      <div class="card-body" id="items-wrapper">
+        <div class="row g-2 mb-2 item-row">
+          <div class="col-md-4">
+            <label>Product</label>
+            <select name="product_1" class="form-control" onchange="calculateTotals()">
+              {% for p in products %}
+              <option value="{{ p.id }}">{{ p.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label>Quantity</label>
+            <input type="number" name="quantity_1" class="form-control" placeholder="Qty" required oninput="calculateTotals()">
+          </div>
+          <div class="col-md-2">
+            <label>Price</label>
+            <input type="number" name="price_1" class="form-control" placeholder="Price" step="0.01" required oninput="calculateTotals()">
+          </div>
+          <div class="col-md-2">
+            <label>GST %</label>
+            <input type="number" name="gst_1" class="form-control" placeholder="GST %" step="0.01" oninput="calculateTotals()">
+          </div>
+        </div>
+      </div>
+      <div class="card-footer text-end">
+        <button type="button" class="btn btn-secondary" onclick="addItem()">➕ Add Another Item</button>
+      </div>
+    </div>
+
+    <!-- Sale Summary -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header bg-light fw-bold">💰 Sale Summary</div>
+      <div class="card-body row">
+        <div class="col-md-4">
+          <label>Subtotal</label>
+          <input type="text" class="form-control" id="subtotal" readonly>
+        </div>
+        <div class="col-md-4">
+          <label>GST Total</label>
+          <input type="text" class="form-control" id="gst_total" readonly>
+        </div>
+        <div class="col-md-4">
+          <label>Grand Total</label>
+          <input type="text" class="form-control fw-bold text-success" id="grand_total" readonly>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-end">
+      <button type="submit" class="btn btn-success px-4">💾 Save Sale</button>
+    </div>
+  </form>
+</div>
+
+<script>
+let itemCount = 1;
+
+function addItem() {
+  itemCount++;
+  document.getElementById('total_items').value = itemCount;
+
+  const itemHTML = `
+    <div class="row g-2 mb-2 item-row">
+      <div class="col-md-4">
+        <select name="product_${itemCount}" class="form-control" onchange="calculateTotals()">
+          {% for p in products %}
+            <option value="{{ p.id }}">{{ p.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <input type="number" name="quantity_${itemCount}" class="form-control" placeholder="Qty" required oninput="calculateTotals()">
+      </div>
+      <div class="col-md-2">
+        <input type="number" name="price_${itemCount}" class="form-control" placeholder="Price" step="0.01" required oninput="calculateTotals()">
+      </div>
+      <div class="col-md-2">
+        <input type="number" name="gst_${itemCount}" class="form-control" placeholder="GST %" step="0.01" oninput="calculateTotals()">
+      </div>
+    </div>
+  `;
+  document.getElementById("items-wrapper").insertAdjacentHTML("beforeend", itemHTML);
+  calculateTotals();
+}
+
+function calculateTotals() {
+  const rows = document.querySelectorAll('.item-row');
+  let subtotal = 0;
+  let gstTotal = 0;
+
+  rows.forEach(row => {
+    const qty = parseFloat(row.querySelector('[name^="quantity"]').value) || 0;
+    const price = parseFloat(row.querySelector('[name^="price"]').value) || 0;
+    const gst = parseFloat(row.querySelector('[name^="gst"]').value) || 0;
+
+    const lineTotal = qty * price;
+    const gstAmount = lineTotal * gst / 100;
+
+    subtotal += lineTotal;
+    gstTotal += gstAmount;
+  });
+
+  const grandTotal = subtotal + gstTotal;
+
+  document.getElementById('subtotal').value = subtotal.toFixed(2);
+  document.getElementById('gst_total').value = gstTotal.toFixed(2);
+  document.getElementById('grand_total').value = grandTotal.toFixed(2);
+}
+</script>
+
+{% endblock %}

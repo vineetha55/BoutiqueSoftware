@@ -1,10 +1,46 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+{% include 'navbar.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h3>Add Employee</h3>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label>Name</label>
+                <input type="text" name="name" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+                <label>Email</label>
+                <input type="email" name="email" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+                <label>Phone</label>
+                <input type="text" name="phone" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+                <label>Designation</label>
+                <input type="text" name="designation" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+                <label>Date Joined</label>
+                <input type="date" name="date_joined" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+                <label>Status</label>
+                <select name="status" class="form-control" required>
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label>Photo</label>
+                <input type="file" name="photo" class="form-control">
+            </div>
+        </div>
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">💾 Save</button>
+            <a href="{% url 'employees' %}" class="btn btn-secondary">Back</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

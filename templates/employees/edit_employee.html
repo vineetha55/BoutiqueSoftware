@@ -1,10 +1,49 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h3>Edit Employee</h3>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label>Name</label>
+                <input type="text" name="name" class="form-control" value="{{ employee.name }}" required>
+            </div>
+            <div class="col-md-6">
+                <label>Email</label>
+                <input type="email" name="email" class="form-control" value="{{ employee.email }}" required>
+            </div>
+            <div class="col-md-6">
+                <label>Phone</label>
+                <input type="text" name="phone" class="form-control" value="{{ employee.phone }}" required>
+            </div>
+            <div class="col-md-6">
+                <label>Designation</label>
+                <input type="text" name="designation" class="form-control" value="{{ employee.designation }}" required>
+            </div>
+            <div class="col-md-6">
+                <label>Date Joined</label>
+                <input type="date" name="date_joined" class="form-control" value="{{ employee.date_joined|date:'Y-m-d' }}" required>
+            </div>
+            <div class="col-md-6">
+                <label>Status</label>
+                <select name="status" class="form-control">
+                    <option value="Active" {% if employee.status == "Active" %}selected{% endif %}>Active</option>
+                    <option value="Inactive" {% if employee.status == "Inactive" %}selected{% endif %}>Inactive</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label>Photo</label>
+                {% if employee.photo %}
+                    <img src="{{ employee.photo.url }}" width="50" class="mb-2 d-block">
+                {% endif %}
+                <input type="file" name="photo" class="form-control">
+            </div>
+        </div>
+        <div class="mt-4">
+            <button type="submit" class="btn btn-success">✅ Update</button>
+            <a href="{% url 'employees' %}" class="btn btn-secondary">Back</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

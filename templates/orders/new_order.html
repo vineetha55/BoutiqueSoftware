@@ -1,10 +1,50 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-
-</body>
-</html>
+{% include 'navbar.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h3>✂️ New Tailoring Order</h3>
+    <form method="post">
+        {% csrf_token %}
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label>Customer Name</label>
+                <input type="text" name="customer_name" class="form-control" required>
+            </div>
+            <div class="col-md-4">
+                <label>Phone</label>
+                <input type="text" name="phone" class="form-control" required>
+            </div>
+            <div class="col-md-4">
+                <label>Item Type</label>
+                <input type="text" name="item_type" class="form-control" required>
+            </div>
+            <div class="col-md-4">
+                <label>Order Date</label>
+                <input type="date" name="order_date" class="form-control" required>
+            </div>
+            <div class="col-md-4">
+                <label>Delivery Date</label>
+                <input type="date" name="delivery_date" class="form-control" required>
+            </div>
+            <div class="col-md-4">
+                <label>Status</label>
+                <select name="status" class="form-control" required>
+                    <option value="pending">Pending</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                </select>
+            </div>
+            <div class="col-md-12">
+                <label>Notes</label>
+                <textarea name="notes" class="form-control"></textarea>
+            </div>
+            <div class="col-md-12 form-check">
+                <input type="checkbox" name="fabric_provided" class="form-check-input">
+                <label class="form-check-label">Fabric Provided by Customer</label>
+            </div>
+        </div>
+        <div class="text-end mt-4">
+            <button type="submit" class="btn btn-success px-4">Save Order</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

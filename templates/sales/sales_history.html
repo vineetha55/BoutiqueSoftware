@@ -1,10 +1,60 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% include 'navbar.html' %}
+{% load static %}
+{% block content %}
 
-</body>
-</html>
+<div class="container mt-4">
+    <h3 class="mb-4">🧾 Sale History</h3>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <div class="card shadow-sm">
+        <div class="card-body table-responsive">
+            <table class="table table-bordered table-striped align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Sale Date</th>
+                        <th>Customer</th>
+                        <th>Invoice No</th>
+                        <th>Total Amount</th>
+                        <th>Payment Mode</th>
+                        <th>Status</th>
+                        <th class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sale in sales %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ sale.sale_date }}</td>
+                        <td>{{ sale.customer.name }}</td>
+                        <td>{{ sale.invoice_number }}</td>
+                        <td>₹ {{ sale.total_amount }}</td>
+                        <td>{{ sale.payment_mode }}</td>
+                        <td>
+                            {% if sale.payment_status == "Paid" %}
+                                <span class="badge bg-success">Paid</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <a href="{% url 'sale_detail' sale.id %}" class="btn btn-sm btn-primary">View</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center">No sales found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -15,6 +15,7 @@ urlpatterns = [
     path("products/sub_categories/",sub_categories,name="sub_categories"),
     path("category/add/",category_add,name="category_add"),
     path("subcategory/add/",subcategory_add,name="subcategory_add"),
+    path("products/stock/update/<int:pk>/", update_stock, name="update_stock"),
 
     # Sales
     path("sales/new/", new_sale, name="new_sale"),
@@ -57,9 +58,13 @@ urlpatterns = [
     path("employees/", employee_list, name="employees"),
     path("employees/attendance/", attendance, name="attendance"),
     path("employees/leaves/", leaves, name="leaves"),
+    path("employees/add/", add_employee, name="add_employee"),
+    path("employees/edit/<int:id>/", edit_employee, name="edit_employee"),
+    path("employees/delete/<int:id>/", delete_employee, name="delete_employee"),
 
     # Expenses
     path("expenses/", expense_list, name="expenses"),
+    path("expenses/add/", add_expense, name="add_expense"),
 
     # Reports
     path("reports/sales/", sales_report, name="sales_report"),
@@ -70,4 +75,6 @@ urlpatterns = [
     path("settings/shop/", shop_settings, name="shop_settings"),
     path("settings/theme/", theme_settings, name="theme_settings"),
     path("settings/backup/", backup_restore, name="backup_restore"),
+    path("settings/backup/download/", backup_download, name="backup_download"),
+    path("settings/backup/upload/", backup_upload, name="backup_upload"),
 ]

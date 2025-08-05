@@ -1,10 +1,34 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-
-</body>
-</html>
+{% include 'navbar.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h3>🧵 Tailoring Orders</h3>
+    <table class="table table-striped mt-3">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Customer</th>
+                <th>Item</th>
+                <th>Order Date</th>
+                <th>Delivery</th>
+                <th>Status</th>
+                <th>Fabric</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for o in orders %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ o.customer_name }}</td>
+                <td>{{ o.item_type }}</td>
+                <td>{{ o.order_date }}</td>
+                <td>{{ o.delivery_date }}</td>
+                <td>{{ o.status }}</td>
+                <td>{{ o.fabric_provided|yesno:"Yes,No" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="text-center">No orders found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

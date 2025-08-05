@@ -1,10 +1,48 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% include 'navbar.html' %}
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between mb-3">
+        <h3>💸 Expense List</h3>
+        <a href="{% url 'add_expense' %}" class="btn btn-primary">➕ Add Expense</a>
+    </div>
 
-</body>
-</html>
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <table class="table table-striped table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Date</th>
+                <th>Category</th>
+                <th>Amount (₹)</th>
+                <th>Mode</th>
+                <th>Ref No.</th>
+                <th>Description</th>
+                <th>Added By</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for exp in expenses %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ exp.date }}</td>
+                <td>{{ exp.get_category_display }}</td>
+                <td>{{ exp.amount }}</td>
+                <td>{{ exp.get_payment_mode_display }}</td>
+                <td>{{ exp.reference_number|default:"--" }}</td>
+                <td>{{ exp.description|default:"--" }}</td>
+                <td>{{ exp.added_by.username }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" class="text-center">No expenses added.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
