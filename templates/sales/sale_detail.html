@@ -1,0 +1,54 @@
+{% include 'navbar.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h3 class="mb-4">🧾 Sale Detail - {{ sale.invoice_number }}</h3>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body row">
+            <div class="col-md-4"><strong>Customer:</strong> {{ sale.customer.name }}</div>
+            <div class="col-md-4"><strong>Date:</strong> {{ sale.sale_date }}</div>
+            <div class="col-md-4"><strong>Payment:</strong> {{ sale.payment_mode }}</div>
+            <div class="col-md-4"><strong>Status:</strong> 
+                {% if sale.payment_status == "Paid" %}
+                    <span class="badge bg-success">Paid</span>
+                {% else %}
+                    <span class="badge bg-warning text-dark">Pending</span>
+                {% endif %}
+            </div>
+            <div class="col-md-4"><strong>Total:</strong> ₹{{ sale.total_amount }}</div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-dark text-white">Items Sold</div>
+        <div class="card-body table-responsive">
+            <table class="table table-bordered align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Product</th>
+                        <th>Qty</th>
+                        <th>Unit Price</th>
+                        <th>GST %</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in sale_items %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ item.product.name }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>₹{{ item.unit_price }}</td>
+                        <td>{{ item.gst }}%</td>
+                        <td>
+                            ₹{{ item.quantity|floatformat:2|floatformat:2|add:item.unit_price|floatformat:2 }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

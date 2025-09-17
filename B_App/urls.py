@@ -20,10 +20,17 @@ urlpatterns = [
     # Sales
     path("sales/new/", new_sale, name="new_sale"),
     path("sales/history/", sales_history, name="sales_history"),
+    path('get-product/<int:product_id>/', get_product_data, name='get_product_data'),
+    path('customers/ajax/add/', add_customer_ajax, name='add_customer_ajax'),
+    path('sale/<int:sale_id>/', sale_detail, name='sale_detail'),
+
 
     # Purchases
     path("purchase/new/", new_purchase, name="new_purchase"),
     path("purchase/history/", purchase_list, name="purchase_list"),
+    path("get-product/<int:product_id>/", get_product_details, name="get_product"),
+
+
 
     # Vendors
     path("vendors/", vendor_list, name="vendor_list"),

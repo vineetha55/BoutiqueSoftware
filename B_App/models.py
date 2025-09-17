@@ -75,6 +75,7 @@ class tbl_Product(models.Model):
     status = models.CharField(max_length=10, choices=[('active', 'Active'), ('inactive', 'Inactive')], default='active')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    gst_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
 
 
 class Vendor(models.Model):
@@ -118,8 +119,7 @@ class PurchaseItem(models.Model):
 
 
 class Sale(models.Model):
-    customer_name = models.CharField(max_length=100)
-    contact = models.CharField(max_length=15, blank=True)
+    customer_name = models.ForeignKey(Customer,on_delete=models.CASCADE)
     sale_date = models.DateField(auto_now_add=True)
     payment_mode = models.CharField(max_length=50)
     payment_status = models.CharField(max_length=50)

@@ -13,23 +13,25 @@
     {% csrf_token %}
     <input type="hidden" name="total_items" id="total_items" value="1">
 
-    <!-- Customer & Sale Info -->
+    <!-- Customer Info -->
     <div class="card mb-4 shadow-sm">
-      <div class="card-header bg-primary text-white fw-bold">Customer & Sale Info</div>
+      <div class="card-header bg-primary text-white fw-bold">Customer Info</div>
       <div class="card-body row g-3">
         <div class="col-md-4">
           <label>Customer</label>
-          <select name="customer" class="form-control" required>
-            <option value="">-- Select Customer --</option>
-            {% for c in customers %}
-              <option value="{{ c.id }}">{{ c.name }}</option>
-            {% endfor %}
-          </select>
+          <div class="input-group">
+            <select name="customer" id="customerSelect" class="form-control" required>
+              <option value="">-- Select Customer --</option>
+              {% for c in customers %}
+                <option value="{{ c.id }}">{{ c.name }}</option>
+              {% endfor %}
+            </select>
+            <button type="button" class="btn btn-primary m-1" data-bs-toggle="modal" data-bs-target="#addCustomerModal">➕</button>
+          </div>
         </div>
         <div class="col-md-4">
           <label>Sale Date</label>
-          <input type="date" name="sale_date" class="form-control" required>
-        </div>
+        <input type="date" name="sale_date" class="form-control" required value="{{ today }}">        </div>
         <div class="col-md-4">
           <label>Payment Mode</label>
           <select name="payment_mode" class="form-control" required>
@@ -39,6 +41,17 @@
             <option value="Bank Transfer">Bank Transfer</option>
           </select>
         </div>
+        <div class="col-md-6">
+                    <label>Payment Status</label>
+                    <select name="payment_status" class="form-control" required>
+                        <option>Paid</option>
+                        <option>Pending</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label>Notes</label>
+                    <textarea name="notes" class="form-control"></textarea>
+                </div>
       </div>
     </div>
 
@@ -49,23 +62,24 @@
         <div class="row g-2 mb-2 item-row">
           <div class="col-md-4">
             <label>Product</label>
-            <select name="product_1" class="form-control" onchange="calculateTotals()">
+            <select name="product_1" class="form-control" onchange="fetchProductDetails(this)">
+              <option value="">-- Select --</option>
               {% for p in products %}
-              <option value="{{ p.id }}">{{ p.name }}</option>
+                <option value="{{ p.id }}">{{ p.name }}</option>
               {% endfor %}
             </select>
           </div>
           <div class="col-md-2">
             <label>Quantity</label>
-            <input type="number" name="quantity_1" class="form-control" placeholder="Qty" required oninput="calculateTotals()">
+            <input type="number" name="quantity_1" class="form-control" required oninput="calculateTotals()">
           </div>
           <div class="col-md-2">
             <label>Price</label>
-            <input type="number" name="price_1" class="form-control" placeholder="Price" step="0.01" required oninput="calculateTotals()">
+            <input type="number" name="price_1" class="form-control" step="0.01" required oninput="calculateTotals()">
           </div>
           <div class="col-md-2">
             <label>GST %</label>
-            <input type="number" name="gst_1" class="form-control" placeholder="GST %" step="0.01" oninput="calculateTotals()">
+            <input type="number" name="gst_1" class="form-control" step="0.01" oninput="calculateTotals()">
           </div>
         </div>
       </div>
@@ -99,6 +113,43 @@
   </form>
 </div>
 
+<!-- New Customer Modal -->
+<div class="modal fade" id="addCustomerModal" tabindex="-1" aria-labelledby="addCustomerModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="addCustomerForm">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title">Add New Customer</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-2">
+            <label>Name</label>
+            <input type="text" name="name" class="form-control" required>
+          </div>
+          <div class="mb-2">
+            <label>Phone</label>
+            <input type="text" name="phone" class="form-control">
+          </div>
+          <div class="mb-2">
+            <label>Email</label>
+            <input type="email" name="email" class="form-control">
+          </div>
+          <div class="mb-2">
+            <label>Address</label>
+            <textarea name="address" class="form-control"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Add Customer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
 <script>
 let itemCount = 1;
 
@@ -109,7 +160,8 @@ function addItem() {
   const itemHTML = `
     <div class="row g-2 mb-2 item-row">
       <div class="col-md-4">
-        <select name="product_${itemCount}" class="form-control" onchange="calculateTotals()">
+        <select name="product_${itemCount}" class="form-control" onchange="fetchProductDetails(this)">
+          <option value="">-- Select --</option>
           {% for p in products %}
             <option value="{{ p.id }}">{{ p.name }}</option>
           {% endfor %}
@@ -126,14 +178,29 @@ function addItem() {
       </div>
     </div>
   `;
+
   document.getElementById("items-wrapper").insertAdjacentHTML("beforeend", itemHTML);
-  calculateTotals();
+}
+
+function fetchProductDetails(selectElement) {
+  const productId = selectElement.value;
+  const row = selectElement.closest('.item-row');
+  if (!productId) return;
+
+  fetch(`/get-product/${productId}/`)
+    .then(response => response.json())
+    .then(data => {
+      if (!data.error) {
+        row.querySelector('[name^="price"]').value = data.price;
+        row.querySelector('[name^="gst"]').value = data.gst;
+        calculateTotals();
+      }
+    });
 }
 
 function calculateTotals() {
   const rows = document.querySelectorAll('.item-row');
-  let subtotal = 0;
-  let gstTotal = 0;
+  let subtotal = 0, gstTotal = 0;
 
   rows.forEach(row => {
     const qty = parseFloat(row.querySelector('[name^="quantity"]').value) || 0;
@@ -141,18 +208,37 @@ function calculateTotals() {
     const gst = parseFloat(row.querySelector('[name^="gst"]').value) || 0;
 
     const lineTotal = qty * price;
-    const gstAmount = lineTotal * gst / 100;
-
     subtotal += lineTotal;
-    gstTotal += gstAmount;
+    gstTotal += (lineTotal * gst / 100);
   });
-
-  const grandTotal = subtotal + gstTotal;
 
   document.getElementById('subtotal').value = subtotal.toFixed(2);
   document.getElementById('gst_total').value = gstTotal.toFixed(2);
-  document.getElementById('grand_total').value = grandTotal.toFixed(2);
+  document.getElementById('grand_total').value = (subtotal + gstTotal).toFixed(2);
 }
+
+// AJAX: Add customer from modal
+document.getElementById("addCustomerForm").addEventListener("submit", function (e) {
+  e.preventDefault();
+  const formData = new FormData(this);
+
+  fetch("{% url 'add_customer_ajax' %}", {
+    method: "POST",
+    headers: { 'X-CSRFToken': formData.get("csrfmiddlewaretoken") },
+    body: formData
+  })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        const select = document.getElementById("customerSelect");
+        const newOption = new Option(data.name, data.id, true, true);
+        select.add(newOption);
+        bootstrap.Modal.getInstance(document.getElementById("addCustomerModal")).hide();
+      } else {
+        alert("Error adding customer.");
+      }
+    });
+});
 </script>
 
 {% endblock %}

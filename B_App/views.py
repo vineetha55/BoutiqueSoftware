@@ -1,7 +1,9 @@
+from datetime import date
+
 from django.contrib import messages
 from django.core.management import call_command
 from django.db import transaction
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -139,16 +141,14 @@ def subcategory_add(request):
 @login_required
 def new_sale(request):
     if request.method == "POST":
-        customer_name = request.POST.get("customer_name")
-        contact = request.POST.get("contact")
+        customer_name = request.POST.get("customer")
         payment_mode = request.POST.get("payment_mode")
         payment_status = request.POST.get("payment_status")
         notes = request.POST.get("notes")
         total_items = int(request.POST.get("total_items"))
 
         sale = Sale.objects.create(
-            customer_name=customer_name,
-            contact=contact,
+            customer_name_id=customer_name,
             payment_mode=payment_mode,
             payment_status=payment_status,
             notes=notes,
@@ -174,8 +174,45 @@ def new_sale(request):
 
     products = tbl_Product.objects.all()
     settings=ShopSettings.objects.first()
-    customer=Customer.objects.all()
-    return render(request, "sales/new_sale.html", {"products": products,"settings":settings,"customer":customer})
+    customers=Customer.objects.all()
+    today = date.today().isoformat()
+    return render(request, "sales/new_sale.html", {"today":today,"products": products,"settings":settings,"customers":customers})
+
+def sale_detail(request, sale_id):
+    sale = get_object_or_404(Sale, id=sale_id)
+    sale_items = SaleItem.objects.filter(sale=sale)
+
+    return render(request, 'sales/sale_detail.html', {
+        'sale': sale,
+        'sale_items': sale_items,
+    })
+
+
+def get_product_data(request, product_id):
+    try:
+        product = tbl_Product.objects.get(id=product_id)
+        return JsonResponse({
+            'price': float(product.price),
+            'gst': 0
+        })
+    except tbl_Product.DoesNotExist:
+        return JsonResponse({'error': 'Product not found'}, status=404)
+
+
+
+@login_required
+def add_customer_ajax(request):
+    if request.method == "POST":
+        name = request.POST.get('name')
+        phone = request.POST.get('phone')
+        email = request.POST.get('email')
+        address = request.POST.get('address')
+
+        customer = Customer.objects.create(
+            name=name, phone=phone, email=email, address=address
+        )
+        return JsonResponse({'success': True, 'id': customer.id, 'name': customer.name})
+    return JsonResponse({'success': False})
 
 
 @login_required
@@ -248,6 +285,23 @@ def new_purchase(request):
     return render(request, "purchase/new_purchase.html", {'vendors': Vendor.objects.all(),'category':tbl_Category.objects.all(),
                                                           'sub':tbl_SubCategory.objects.all(),'settings':ShopSettings.objects.first(),
                                                           "products":tbl_Product.objects.all()})
+
+
+def get_product_details(request, product_id):
+    try:
+        product = tbl_Product.objects.get(id=product_id)
+        data = {
+            'price': float(product.price),
+            'gst': 0.00,
+            'subcategory_id': product.subcategory.id,
+            'subcategory_name': product.subcategory.name,
+            'stock': product.stock
+        }
+        return JsonResponse(data)
+    except tbl_Product.DoesNotExist:
+        return JsonResponse({'error': 'Product not found'}, status=404)
+
+
 @login_required
 def purchase_list(request):
     settings = ShopSettings.objects.first()
